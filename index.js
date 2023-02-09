@@ -1,4 +1,9 @@
-fetch("teams.json")
+fetch("http://localhost:3000/teams-json", {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
   .then((r) => r.json())
   .then((teams) => {
     displayTeams(teams);
@@ -11,8 +16,9 @@ function displayTeams(teams) {
         <tr>
           <td>${team.promotion}</td>
           <td>${team.members}</td>
-          <td>Team Networking</td>
-          <td>https://github.com/Michael-ZE/Michael-ZE.github.io</td>
+          <td>${team.name}</td>
+          <td>${team.url}</td>
+          <td></td>
         </tr>`
   );
 
