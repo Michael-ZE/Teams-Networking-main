@@ -58,6 +58,7 @@ function initEvents() {
 
   document.querySelector("#teams tbody").addEventListener("click", (e) => {
     if (e.target.matches("a")) {
+      const id = e.target.dataset.id;
       console.warn("delete", e.target.id);
     }
   });
