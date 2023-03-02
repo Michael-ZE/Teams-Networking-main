@@ -11,7 +11,22 @@ fetch("http://localhost:3000/teams-json", {
     displayTeams(teams);
   });
 
-function deleteTeamRequest(req, res) {
+function createTeamRequest() {
+  return fetch("http://localhost:3000/teams-json/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      promotion: document.getElementById("promotion").value,
+      members: document.getElementById("members").value,
+      name: document.getElementById("name").value,
+      url: document.getElementById("url").value,
+    }).then((r) => r.json()),
+  });
+}
+
+function deleteTeamRequest(id) {
   fetch("http://localhost:3000/teams-json/delete", {
     method: "DELETE",
     headers: {
