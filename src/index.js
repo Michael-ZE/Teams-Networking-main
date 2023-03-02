@@ -18,9 +18,7 @@ function displayTeams(teams) {
           <td>${team.members}</td>
           <td>${team.name}</td>
           <td>${team.url}</td>
-          <td>
-          <a>❌</a>
-          </td>
+          <td></td>
         </tr>`
   );
 
@@ -50,10 +48,6 @@ function onSubmit(e) {
         window.location.reload();
       }
     });
-}
-
-function removeTeamRequest() {
-  
 }
 
 function initEvents() {
