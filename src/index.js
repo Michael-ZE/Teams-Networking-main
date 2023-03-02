@@ -70,8 +70,7 @@ function deleteTeamRequest(req, res) {
     document.querySelector("#teams tbody").addEventListener("click", (e) => {
       if (e.target.matches("a")) {
         const id = e.target.dataset.id;
-        const p = deleteTeamRequest(id + "x");
-        console.warn("p", p);
+        const p = deleteTeamRequest(id);
         p.then((r) => r.json()).then((s) => {
           console.info("s", s);
           window.location.reload();
