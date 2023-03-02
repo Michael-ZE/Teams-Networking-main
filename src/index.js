@@ -1,3 +1,5 @@
+const { delay } = require("lodash");
+
 fetch("http://localhost:3000/teams-json", {
   method: "GET",
   headers: {
@@ -9,10 +11,19 @@ fetch("http://localhost:3000/teams-json", {
     displayTeams(teams);
   });
 
-function displayTeams(teams) {
-  console.info("display", teams);
-  const teamsHTML = teams.map(
-    (team) => `
+function deleteTeamRequest(req, res) {
+  fetch("http://localhost:3000/teams-json/delete", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  function displayTeams(teams) {
+    console.info("display", teams);
+    const teamsHTML = teams.map(
+      (team) => `
         <tr>
           <td>${team.promotion}</td>
           <td>${team.members}</td>
@@ -22,46 +33,52 @@ function displayTeams(teams) {
           <a data-id = "${team.id}">❌</a>
           </td>
         </tr>`
-  );
+    );
 
-  document.querySelector("#teams tbody").innerHTML = teamsHTML.join("");
-  console.info("display", teamsHTML, teams);
-}
+    document.querySelector("#teams tbody").innerHTML = teamsHTML.join("");
+    console.info("display", teamsHTML, teams);
+  }
 
-function onSubmit(e) {
-  e.preventDefault();
+  function onSubmit(e) {
+    e.preventDefault();
 
-  fetch("http://localhost:3000/teams-json/create", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      promotion: document.getElementById("promotion").value,
-      members: document.getElementById("members").value,
-      name: document.getElementById("name").value,
-      url: document.getElementById("url").value,
-    }),
-  })
-    .then((r) => r.json())
-    .then((status) => {
-      console.warn("status", status.success, status.id);
-      if (status.success) {
-        window.location.reload();
+    fetch("http://localhost:3000/teams-json/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        promotion: document.getElementById("promotion").value,
+        members: document.getElementById("members").value,
+        name: document.getElementById("name").value,
+        url: document.getElementById("url").value,
+      }),
+    })
+      .then((r) => r.json())
+      .then((status) => {
+        console.warn("status", status.success, status.id);
+        if (status.success) {
+          window.location.reload();
+        }
+      });
+  }
+
+  function initEvents() {
+    const form = document.getElementById("editForm");
+    form.addEventListener("submit", onSubmit);
+
+    document.querySelector("#teams tbody").addEventListener("click", (e) => {
+      if (e.target.matches("a")) {
+        const id = e.target.dataset.id;
+        const p = deleteTeamRequest(id + "x");
+        console.warn("p", p);
+        p.then((r) => r.json()).then((s) => {
+          console.info("s", s);
+          window.location.reload();
+        });
       }
     });
-}
-
-function initEvents() {
-  const form = document.getElementById("editForm");
-  form.addEventListener("submit", onSubmit);
-
-  document.querySelector("#teams tbody").addEventListener("click", (e) => {
-    if (e.target.matches("a")) {
-      const id = e.target.dataset.id;
-      console.warn("delete", e.target.id);
-    }
-  });
+  }
 }
 
 initEvents();
