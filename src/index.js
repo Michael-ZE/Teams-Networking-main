@@ -72,14 +72,21 @@ function getTeamsHTML(teams) {
         </td>
         <td>
           <a data-id="${team.id}" class="remove-btn">✖</a>
-          <a data-id="${team.id}" class="edit-btn">&#9998;</a>
+          <a data-id="${team.id}" class="edit-btn">🖊</a>
         </td>
       </tr>`
     )
     .join("");
 }
 
+let oldDisplayTeams;
 function displayTeams(teams) {
+  if (oldDisplayTeams === teams) {
+    //console.warn("same teams to display");
+    return;
+  } 
+ // console.info(oldDisplayTeams, teams);
+  oldDisplayTeams = teams;
   document.querySelector("#teams tbody").innerHTML = getTeamsHTML(teams);
 }
 
@@ -100,9 +107,17 @@ function onSubmit(e) {
     updateTeamRequest(team).then((status) => {
       if (status.success) {
         // load new teams...?
-        loadTeams();
+        //loadTeams();
         // TODO don't load teams
-        //displayTeams(allTeams);
+        allTeams = [...allTeams]
+        const editedTeam = allTeams.find(teams => teams.id === editId);
+        console.warn('editedTeam', JSON.stringify(editedTeam), team);
+        editedTeam.promotion = team.promotion;
+        editedTeam.members = team.members;
+        editedTeam.url = team.url;
+        editedTeam.name = team.name;
+        
+        displayTeams(allTeams);
         e.target.reset();
       }
     });
@@ -113,7 +128,7 @@ function onSubmit(e) {
         //   1.0. adaug id in team
         team.id = status.id;
         //   1.1. addaug team in allTeams
-        allTeams.push(team);
+        allTeams = [..allTeams, team];
         //allTeams = [...allTeams, team]
         //   1.2. apelam displayTeams(allTeams);
         displayTeams(allTeams);
