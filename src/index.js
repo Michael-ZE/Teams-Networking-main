@@ -1,19 +1,14 @@
 let allTeams = [];
 let editId;
 
-fetch("http://localhost:3000/teams-json", {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
-  .then((r) => r.json())
-  .then((teams) => {
-    //window.teams = teams;
-    allTeams = teams;
-    console.info(teams);
-    displayTeams(teams);
-  });
+function loadTeamsRequest() {
+  return fetch("http://localhost:3000/teams-json", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((r) => r.json());
+}
 
 function createTeamRequest(team) {
   return fetch("http://localhost:3000/teams-json/create", {
@@ -54,22 +49,47 @@ function readTeam() {
   };
 }
 
-function displayTeams(teams) {
-  const teamsHTML = teams.map(
-    (team) => `
+function writeTeam(team) {
+  document.getElementById("promotion").value = team.promotion;
+  document.getElementById("members").value = team.members;
+  document.getElementById("name").value = team.name;
+  document.getElementById("url").value = team.url;
+}
+
+function getTeamsHTML(teams) {
+  return teams
+    .map(
+      (team) => `
       <tr>
         <td>${team.promotion}</td>
         <td>${team.members}</td>
         <td>${team.name}</td>
-        <td>${team.url}</td>
+        <td>
+          <a href="${team.url}" target="_blank">${team.url.replace(
+        "https://github.com/",
+        ""
+      )}</a>
+        </td>
         <td>
           <a data-id="${team.id}" class="remove-btn">✖</a>
           <a data-id="${team.id}" class="edit-btn">&#9998;</a>
         </td>
       </tr>`
-  );
+    )
+    .join("");
+}
 
-  document.querySelector("#teams tbody").innerHTML = teamsHTML.join("");
+function displayTeams(teams) {
+  document.querySelector("#teams tbody").innerHTML = getTeamsHTML(teams);
+}
+
+function loadTeams() {
+  loadTeamsRequest().then((teams) => {
+    //window.teams = teams;
+    allTeams = teams;
+    console.info(teams);
+    displayTeams(teams);
+  });
 }
 
 function onSubmit(e) {
@@ -77,47 +97,62 @@ function onSubmit(e) {
   const team = readTeam();
   if (editId) {
     team.id = editId;
-    updateTeamRequest(team).then(status => {
+    updateTeamRequest(team).then((status) => {
       if (status.success) {
-        window.location.reload();
+        // load new teams...?
+        loadTeams();
+        // TODO don't load teams
+        //displayTeams(allTeams);
+        e.target.reset();
       }
-    };
+    });
   } else {
     createTeamRequest(team).then((status) => {
       if (status.success) {
-        window.location.reload();
+        // 1. adaugam datele in table...
+        //   1.0. adaug id in team
+        team.id = status.id;
+        //   1.1. addaug team in allTeams
+        allTeams.push(team);
+        //allTeams = [...allTeams, team]
+        //   1.2. apelam displayTeams(allTeams);
+        displayTeams(allTeams);
+        // 2. stergem datele din inputuri
+        //writeTeam({ promotion: "", name: "", url: "", members: "" });
+        e.target.reset();
       }
     });
   }
 }
 
-function edit(id) {
+function prepareEdit(id) {
   const team = allTeams.find((team) => team.id === id);
   editId = id;
 
-  document.getElementById("promotion").value = team.promotion;
-  document.getElementById("members").value = team.members;
-  document.getElementById("name").value = team.name;
-  document.getElementById("url").value = team.url;
+  writeTeam(team);
 }
 
 function initEvents() {
   const form = document.getElementById("editForm");
   form.addEventListener("submit", onSubmit);
+  form.addEventListener("reset", (e) => {
+    editId = undefined;
+  });
 
   document.querySelector("#teams tbody").addEventListener("click", (e) => {
     if (e.target.matches("a.remove-btn")) {
       const id = e.target.dataset.id;
       deleteTeamRequest(id).then((status) => {
         if (status.success) {
-          window.location.reload();
+          loadTeams();
         }
       });
     } else if (e.target.matches("a.edit-btn")) {
       const id = e.target.dataset.id;
-      edit(id);
+      prepareEdit(id);
     }
   });
 }
 
+loadTeams();
 initEvents();
