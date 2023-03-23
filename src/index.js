@@ -50,10 +50,11 @@ function readTeam() {
 }
 
 function writeTeam(team) {
-  document.getElementById("promotion").value = team.promotion;
-  document.getElementById("members").value = team.members;
-  document.getElementById("name").value = team.name;
-  document.getElementById("url").value = team.url;
+  const { promotion, members, name, url } = team;
+  document.getElementById("promotion").value = promotion;
+  document.getElementById("members").value = members;
+  document.getElementById("name").value = name;
+  document.getElementById("url").value = url;
 }
 
 function getTeamsHTML(teams) {
@@ -84,8 +85,8 @@ function displayTeams(teams) {
   if (oldDisplayTeams === teams) {
     //console.warn("same teams to display");
     return;
-  } 
- // console.info(oldDisplayTeams, teams);
+  }
+  // console.info(oldDisplayTeams, teams);
   oldDisplayTeams = teams;
   document.querySelector("#teams tbody").innerHTML = getTeamsHTML(teams);
 }
@@ -118,16 +119,16 @@ function onSubmit(e) {
         editedTeam.name = team.name; 
         */
 
-        allTeams.allTeams.map(t => {
+        allTeams.allTeams.map((t) => {
           if (t.id === team.id) {
-          return {
-            ...t,
-            ...team
-          };
-        }
-        return t;
-        })
-        
+            return {
+              ...t,
+              ...team,
+            };
+          }
+          return t;
+        });
+
         displayTeams(allTeams);
         e.target.reset();
       }
@@ -139,7 +140,7 @@ function onSubmit(e) {
         //   1.0. add id in team
         team.id = status.id;
         //   1.1. add team in allTeams
-        allTeams = [..allTeams, team];
+        allTeams = [...allTeams, team];
         //allTeams = [...allTeams, team]
         //   1.2. apelam displayTeams(allTeams);
         displayTeams(allTeams);
