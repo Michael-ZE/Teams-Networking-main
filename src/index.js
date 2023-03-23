@@ -108,14 +108,25 @@ function onSubmit(e) {
       if (status.success) {
         // load new teams...?
         //loadTeams();
-        // TODO don't load teams
-        allTeams = [...allTeams]
+        /*
+        allTeams = [...allTeams];
         const editedTeam = allTeams.find(teams => teams.id === editId);
         console.warn('editedTeam', JSON.stringify(editedTeam), team);
         editedTeam.promotion = team.promotion;
         editedTeam.members = team.members;
         editedTeam.url = team.url;
-        editedTeam.name = team.name;
+        editedTeam.name = team.name; 
+        */
+
+        allTeams.allTeams.map(t => {
+          if (t.id === team.id) {
+          return {
+            ...t,
+            ...team
+          };
+        }
+        return t;
+        })
         
         displayTeams(allTeams);
         e.target.reset();
@@ -124,10 +135,10 @@ function onSubmit(e) {
   } else {
     createTeamRequest(team).then((status) => {
       if (status.success) {
-        // 1. adaugam datele in table...
-        //   1.0. adaug id in team
+        // 1. add date in table...
+        //   1.0. add id in team
         team.id = status.id;
-        //   1.1. addaug team in allTeams
+        //   1.1. add team in allTeams
         allTeams = [..allTeams, team];
         //allTeams = [...allTeams, team]
         //   1.2. apelam displayTeams(allTeams);
