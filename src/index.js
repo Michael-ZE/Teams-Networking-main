@@ -60,11 +60,11 @@ function writeTeam(team) {
 function getTeamsHTML(teams) {
   return teams
     .map(
-      (team) => `
+      ({ promotion, members, name, url, id }) => `
       <tr>
-        <td>${team.promotion}</td>
-        <td>${team.members}</td>
-        <td>${team.name}</td>
+        <td>${promotion}</td>
+        <td>${members}</td>
+        <td>${name}</td>
         <td>
           <a href="${team.url}" target="_blank">${team.url.replace(
         "https://github.com/",
@@ -72,8 +72,8 @@ function getTeamsHTML(teams) {
       )}</a>
         </td>
         <td>
-          <a data-id="${team.id}" class="remove-btn">✖</a>
-          <a data-id="${team.id}" class="edit-btn">🖊</a>
+          <a data-id="${id}" class="remove-btn">✖</a>
+          <a data-id="${id}" class="edit-btn">🖊</a>
         </td>
       </tr>`
     )
@@ -122,6 +122,7 @@ function onSubmit(e) {
         allTeams.allTeams.map((t) => {
           if (t.id === team.id) {
             return {
+              /// se creaza un obiect nou in care rasturnam "t" si apoi peste el "team"
               ...t,
               ...team,
             };
@@ -166,19 +167,27 @@ function initEvents() {
     editId = undefined;
   });
 
-  document.querySelector("#teams tbody").addEventListener("click", (e) => {
-    if (e.target.matches("a.remove-btn")) {
-      const id = e.target.dataset.id;
-      deleteTeamRequest(id).then((status) => {
+  document
+    .querySelector("#teams tbody")
+    .addEventListener("click", async (e) => {
+      if (e.target.matches("a.remove-btn")) {
+        const id = e.target.dataset.id;
+        /* deleteTeamRequest(id).then((status) => {
+          if (status.success) {
+            loadTeams();
+          }
+        }); */
+
+        const status = await deleteTeamRequest(id);
         if (status.success) {
           loadTeams();
+          // TODO: don't reload all teams using loadTeams(), but delete the iteam from teams
         }
-      });
-    } else if (e.target.matches("a.edit-btn")) {
-      const id = e.target.dataset.id;
-      prepareEdit(id);
-    }
-  });
+      } else if (e.target.matches("a.edit-btn")) {
+        const id = e.target.dataset.id;
+        prepareEdit(id);
+      }
+    });
 }
 
 loadTeams();
