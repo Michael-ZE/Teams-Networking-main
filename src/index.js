@@ -4,8 +4,8 @@ import {
   deleteTeamRequest,
   updateTeamRequest,
 } from "./requests";
-import { sleep } from "./utilities";
-import { $ } from "./utilities";
+import { $, sleep, debounce } from "./utilities";
+//import debounce from "lodash/debounce";
 // const utilities = require('./utilities');
 
 let allTeams = [];
@@ -135,7 +135,8 @@ function initEvents() {
     debounce((e) => {
       const teams = searchTeam(e.target.value);
       displayTeams(teams);
-    }, 300)
+      console.warn("search");
+    }, 2000)
   );
 
   $("#teams tbody").addEventListener("click", async (e) => {
