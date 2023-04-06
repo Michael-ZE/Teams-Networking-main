@@ -5,6 +5,7 @@ import {
   updateTeamRequest,
 } from "./requests";
 import { sleep } from "./utilities";
+import { $ } from "./utilities";
 // const utilities = require('./utilities');
 
 let allTeams = [];
@@ -52,10 +53,10 @@ function getTeamsHTML(teams) {
 let oldDisplayTeams;
 function displayTeams(teams) {
   if (oldDisplayTeams === teams) {
-    console.warn("same teams to display", oldDisplayTeams, teams);
+    //console.warn("same teams to display", oldDisplayTeams, teams);
     return;
   }
-  console.info(oldDisplayTeams, teams);
+  //console.info(oldDisplayTeams, teams);
   oldDisplayTeams = teams;
   document.querySelector("#teams tbody").innerHTML = getTeamsHTML(teams);
 }
@@ -116,6 +117,12 @@ function prepareEdit(id) {
   writeTeam(team);
 }
 
+function searchTeam(search) {
+  return allTeams.filter((team) => {
+    return team.promotion.indexOf(search) > -1;
+  });
+}
+
 function initEvents() {
   const form = document.getElementById("editForm");
   form.addEventListener("submit", onSubmit);
@@ -123,21 +130,24 @@ function initEvents() {
     editId = undefined;
   });
 
-  document
-    .querySelector("#teams tbody")
-    .addEventListener("click", async (e) => {
-      if (e.target.matches("a.remove-btn")) {
-        const id = e.target.dataset.id;
-        const status = await deleteTeamRequest(id);
-        if (status.success) {
-          loadTeams();
-          // TODO homework: don't load all teams...
-        }
-      } else if (e.target.matches("a.edit-btn")) {
-        const id = e.target.dataset.id;
-        prepareEdit(id);
+  $("#search").addEventListener("input", (e) => {
+    const teams = searchTeam(e.target.value);
+    displayTeams(teams);
+  });
+
+  $("#teams tbody").addEventListener("click", async (e) => {
+    if (e.target.matches("a.remove-btn")) {
+      const id = e.target.dataset.id;
+      const status = await deleteTeamRequest(id);
+      if (status.success) {
+        loadTeams();
+        // TODO homework: don't load all teams...
       }
-    });
+    } else if (e.target.matches("a.edit-btn")) {
+      const id = e.target.dataset.id;
+      prepareEdit(id);
+    }
+  });
 }
 
 loadTeams();
