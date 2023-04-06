@@ -1,44 +1,14 @@
+import {
+  loadTeamsRequest,
+  createTeamRequest,
+  deleteTeamRequest,
+  updateTeamRequest,
+} from "./requests";
+import { sleep } from "./utilities";
+// const utilities = require('./utilities');
+
 let allTeams = [];
 let editId;
-
-function loadTeamsRequest() {
-  return fetch("http://localhost:3000/teams-json", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then((r) => r.json());
-}
-
-function createTeamRequest(team) {
-  return fetch("http://localhost:3000/teams-json/create", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(team),
-  }).then((r) => r.json());
-}
-
-function updateTeamRequest(team) {
-  return fetch("http://localhost:3000/teams-json/update", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(team),
-  }).then((r) => r.json());
-}
-
-function deleteTeamRequest(id) {
-  return fetch("http://localhost:3000/teams-json/delete", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ id }),
-  }).then((r) => r.json());
-}
 
 function readTeam() {
   return {
@@ -49,8 +19,7 @@ function readTeam() {
   };
 }
 
-function writeTeam(team) {
-  const { promotion, members, name, url } = team;
+function writeTeam({ promotion, members, name, url }) {
   document.getElementById("promotion").value = promotion;
   document.getElementById("members").value = members;
   document.getElementById("name").value = name;
@@ -66,14 +35,14 @@ function getTeamsHTML(teams) {
         <td>${members}</td>
         <td>${name}</td>
         <td>
-          <a href="${team.url}" target="_blank">${team.url.replace(
+          <a href="${url}" target="_blank">${url.replace(
         "https://github.com/",
         ""
       )}</a>
         </td>
         <td>
           <a data-id="${id}" class="remove-btn">✖</a>
-          <a data-id="${id}" class="edit-btn">🖊</a>
+          <a data-id="${id}" class="edit-btn">&#9998;</a>
         </td>
       </tr>`
     )
@@ -83,10 +52,10 @@ function getTeamsHTML(teams) {
 let oldDisplayTeams;
 function displayTeams(teams) {
   if (oldDisplayTeams === teams) {
-    //console.warn("same teams to display");
+    console.warn("same teams to display", oldDisplayTeams, teams);
     return;
   }
-  // console.info(oldDisplayTeams, teams);
+  console.info(oldDisplayTeams, teams);
   oldDisplayTeams = teams;
   document.querySelector("#teams tbody").innerHTML = getTeamsHTML(teams);
 }
@@ -100,56 +69,43 @@ function loadTeams() {
   });
 }
 
-function onSubmit(e) {
+async function onSubmit(e) {
   e.preventDefault();
   const team = readTeam();
   if (editId) {
     team.id = editId;
-    updateTeamRequest(team).then((status) => {
-      if (status.success) {
-        // load new teams...?
-        //loadTeams();
-        /*
-        allTeams = [...allTeams];
-        const editedTeam = allTeams.find(teams => teams.id === editId);
-        console.warn('editedTeam', JSON.stringify(editedTeam), team);
-        editedTeam.promotion = team.promotion;
-        editedTeam.members = team.members;
-        editedTeam.url = team.url;
-        editedTeam.name = team.name; 
-        */
+    const status = await updateTeamRequest(team);
+    if (status.success) {
+      // load new teams...?
+      //loadTeams();
+      allTeams = allTeams.map((t) => {
+        if (t.id === team.id) {
+          return {
+            ...t,
+            ...team,
+          };
+        }
+        return t;
+      });
 
-        allTeams.allTeams.map((t) => {
-          if (t.id === team.id) {
-            return {
-              /// se creaza un obiect nou in care rasturnam "t" si apoi peste el "team"
-              ...t,
-              ...team,
-            };
-          }
-          return t;
-        });
-
-        displayTeams(allTeams);
-        e.target.reset();
-      }
-    });
+      displayTeams(allTeams);
+      e.target.reset();
+    }
   } else {
-    createTeamRequest(team).then((status) => {
-      if (status.success) {
-        // 1. add date in table...
-        //   1.0. add id in team
-        team.id = status.id;
-        //   1.1. add team in allTeams
-        allTeams = [...allTeams, team];
-        //allTeams = [...allTeams, team]
-        //   1.2. apelam displayTeams(allTeams);
-        displayTeams(allTeams);
-        // 2. stergem datele din inputuri
-        //writeTeam({ promotion: "", name: "", url: "", members: "" });
-        e.target.reset();
-      }
-    });
+    const status = await createTeamRequest(team);
+    if (status.success) {
+      // 1. adaugam datele in table...
+      //   1.0. adaug id in team
+      team.id = status.id;
+      //   1.1. addaug team in allTeams
+      //allTeams.push(team);
+      allTeams = [...allTeams, team];
+      //   1.2. apelam displayTeams(allTeams);
+      displayTeams(allTeams);
+      // 2. stergem datele din inputuri
+      //writeTeam({ promotion: "", name: "", url: "", members: "" });
+      e.target.reset();
+    }
   }
 }
 
@@ -163,7 +119,7 @@ function prepareEdit(id) {
 function initEvents() {
   const form = document.getElementById("editForm");
   form.addEventListener("submit", onSubmit);
-  form.addEventListener("reset", (e) => {
+  form.addEventListener("reset", () => {
     editId = undefined;
   });
 
@@ -172,16 +128,10 @@ function initEvents() {
     .addEventListener("click", async (e) => {
       if (e.target.matches("a.remove-btn")) {
         const id = e.target.dataset.id;
-        /* deleteTeamRequest(id).then((status) => {
-          if (status.success) {
-            loadTeams();
-          }
-        }); */
-
         const status = await deleteTeamRequest(id);
         if (status.success) {
           loadTeams();
-          // TODO: don't reload all teams using loadTeams(), but delete the iteam from teams
+          // TODO homework: don't load all teams...
         }
       } else if (e.target.matches("a.edit-btn")) {
         const id = e.target.dataset.id;
@@ -192,3 +142,16 @@ function initEvents() {
 
 loadTeams();
 initEvents();
+
+// TODO move in external file
+console.info("sleep");
+sleep(2000).then((r) => {
+  console.info("done1", r);
+});
+console.warn("after sleep");
+
+(async () => {
+  console.info("sleep2");
+  var r2 = await sleep(5000);
+  console.warn("done2", r2);
+})();
