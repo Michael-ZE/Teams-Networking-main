@@ -14,11 +14,16 @@ export function $(selector) {
 export function debounce(fn, ms) {
    let timer; // closure
     //console.warn("debounce", fn, ms);
-    return function (e) {
-      console.warn("inner fn", e);
+    return function () {
+      console.warn("inner fn", this);
+      var context = this;
+      var args = arguments;
       clearTimeout(timer);
       timer = setTimeout(function () {
-        console.info("timeout");
-        fn(e); // callback
+        console.info("timeout", arguments, this);
+        //fn(e); // callback
+        //fn.call(this, e); //
+        //fn.apply(this, arguments);
+        fn.apply(context, arguments);
     }, ms);
 }
