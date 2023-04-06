@@ -130,10 +130,13 @@ function initEvents() {
     editId = undefined;
   });
 
-  $("#search").addEventListener("input", (e) => {
-    const teams = searchTeam(e.target.value);
-    displayTeams(teams);
-  });
+  $("#search").addEventListener(
+    "input",
+    debounce((e) => {
+      const teams = searchTeam(e.target.value);
+      displayTeams(teams);
+    }, 300)
+  );
 
   $("#teams tbody").addEventListener("click", async (e) => {
     if (e.target.matches("a.remove-btn")) {
